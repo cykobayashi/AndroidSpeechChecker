@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/relativeLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/colorPrimary"
+    app:layout_behavior="@string/appbar_scrolling_view_behavior"
+    tools:context="ckobayashi.com.br.androidspeechtest.MainActivity"
+    tools:showIn="@layout/activity_main">
+
+    <TextView
+        android:id="@+id/txtReadLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/white"
+        android:text="@string/read"
+        app:layout_constraintBottom_toTopOf="@+id/txtRead" />
+
+    <TextView
+        android:id="@+id/txtRead"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/white"
+        android:textSize="26dp"
+        app:layout_constraintTop_toBottomOf="@+id/txtReadLabel"
+        android:text="Read that..." />
+
+    <ImageButton
+        android:id="@+id/btnSpeak"
+        android:layout_width="105dp"
+        android:layout_height="65dp"
+        android:background="@null"
+        android:scaleType="fitCenter"
+        android:src="@android:drawable/ic_btn_speak_now"
+        android:textColor="@color/white"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/txtRead" />
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="9dp"
+        android:layout_height="20dp"
+        android:layout_marginTop="8dp"
+        android:textColor="@color/white"
+        android:textSize="15dp"
+        android:textStyle="normal"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/btnSpeak" />
+
+    <TextView
+        android:id="@+id/txtSpeechInput"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="I headed that..."
+        android:textColor="@color/white"
+        android:textSize="26dp"
+        android:textStyle="normal"
+        app:layout_constraintTop_toBottomOf="@+id/textView" />
+
+    <View
+        android:id="@+id/txtSecondLabel"
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:background="#ffffff"
+        app:layout_constraintTop_toBottomOf="@+id/txtSpeechInput"/>
+
+    <TextView
+        android:id="@+id/txtSpeechInputSnd"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="And that..."
+        android:textColor="@color/white"
+        android:textSize="26dp"
+        android:textStyle="normal"
+        app:layout_constraintTop_toBottomOf="@+id/txtSecondLabel" />
+
+</android.support.constraint.ConstraintLayout>
