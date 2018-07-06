@@ -12,19 +12,33 @@ import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
 import java.util.*
+import kotlin.collections.RandomAccess
 
 
 class MainActivity : AppCompatActivity() {
 
     private val REQ_CODE_SPEECH_INPUT = 100
-    private var phrase: String = "hello"
+    private var phrase: Phrase? = null
+
+    private var quotesDAO: QuotesDAO? = null
+    private var phrases: List<Phrase>? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
 
-        changePhrase(phrase)
+        quotesDAO = QuotesDAO(this)
+
+//        quotesDAO!!.insertQuote("At what time?", "", 0)
+//        quotesDAO!!.insertQuote("Follow me.", "", 0)
+//        quotesDAO!!.insertQuote("From here to there.", "", 0)
+//        quotesDAO!!.insertQuote("Turn around.", "", 0)
+//        quotesDAO!!.insertQuote("Why not?", "", 0)
+
+        phrases = quotesDAO!!.getFavorites()
+
+        changePhrase()
 
         fab.setOnClickListener { view ->
             Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
@@ -53,7 +67,7 @@ class MainActivity : AppCompatActivity() {
                             .getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
                     if (result.size > 0) {
                         txtSpeechInput.text = result[0]
-                        if (isCorrect(result[0], phrase)) {
+                        if (isCorrect(result[0], phrase!!.phrase)) {
                             changePhrase();
                         }
                     }
@@ -64,17 +78,16 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun changePhrase(phrase: String) {
-        txtRead.text = phrase;
-    }
-
     private fun changePhrase() {
-        changePhrase("bye")
+        var rnd = Random(System.nanoTime())
+        phrase = phrases?.get(rnd.nextInt(phrases!!.size))
+
+        txtRead.text = phrase!!.phrase
     }
 
     private fun isCorrect(heard: String?, phrase: String): Boolean {
 
-        if (trim(heard).equals(phrase)) {
+        if (trim(heard).equals(trim(phrase))) {
             return true
         }
 
