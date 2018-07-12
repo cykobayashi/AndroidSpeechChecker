@@ -11,6 +11,9 @@ import android.view.MenuItem
 import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
+import java.io.BufferedReader
+import java.io.IOException
+import java.io.InputStreamReader
 import java.util.*
 import kotlin.collections.RandomAccess
 
@@ -30,20 +33,11 @@ class MainActivity : AppCompatActivity() {
 
         quotesDAO = QuotesDAO(this)
 
-//        quotesDAO!!.insertQuote("At what time?", "", 0)
-//        quotesDAO!!.insertQuote("Follow me.", "", 0)
-//        quotesDAO!!.insertQuote("From here to there.", "", 0)
-//        quotesDAO!!.insertQuote("Turn around.", "", 0)
-//        quotesDAO!!.insertQuote("Why not?", "", 0)
+        // importCSV()
 
         phrases = quotesDAO!!.getFavorites()
 
         changePhrase()
-
-        fab.setOnClickListener { view ->
-            Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                    .setAction("Action", null).show()
-        }
 
         btnSpeak.setOnClickListener{
             promptSpeechInput();
@@ -68,11 +62,12 @@ class MainActivity : AppCompatActivity() {
                     if (result.size > 0) {
                         txtSpeechInput.text = result[0]
                         if (isCorrect(result[0], phrase!!.phrase)) {
-                            changePhrase();
+                            markAsCorrentCurrentPhrase()
                         }
                     }
-                    if (result.size > 1)
+                    if (result.size > 1) {
                         txtSpeechInputSnd.text = result[1]
+                    }
                 }
             }
         }
@@ -87,11 +82,46 @@ class MainActivity : AppCompatActivity() {
 
     private fun isCorrect(heard: String?, phrase: String): Boolean {
 
-        if (trim(heard).equals(trim(phrase))) {
-            return true
+        var alternatives = getAlternatives(phrase)
+
+        for (alternative in alternatives!!) {
+            if (trim(heard) == trim(alternative)) {
+                return true
+            }
         }
 
         return false
+
+    }
+
+    private fun getAlternatives(phrase: String): MutableList<String>? {
+
+        var alternatives: MutableList<String> = mutableListOf<String>()
+
+        alternatives.add(phrase)
+
+        if (phrase.contains("'ve")) {
+            alternatives.add(phrase.replace("'ve", " have"))
+        }
+
+        if (phrase.contains("'m")) {
+            alternatives.add(phrase.replace("'m", " am"))
+        }
+
+        if (phrase.contains("'d")) {
+            alternatives.add(phrase.replace("'d", " would"))
+        }
+
+
+        if (phrase.contains("'s")) {
+            alternatives.add(phrase.replace("'s", " is"))
+        }
+
+        if (phrase.contains("'ll")) {
+            alternatives.add(phrase.replace("'ll", " will"))
+        }
+
+        return alternatives
 
     }
 
@@ -100,6 +130,30 @@ class MainActivity : AppCompatActivity() {
         val re = Regex("[^a-z0-9 ]")
         return re.replace(heard!!.toLowerCase().trim(), "")
 
+    }
+
+    private fun importCSV() = try {
+        val `is` = InputStreamReader(assets.open("scratch.txt"))
+        val reader = BufferedReader(`is`)
+        var line: String? = null;
+        var count = 0
+
+        while ({ line = reader.readLine(); line }() != null) {
+            quotesDAO?.insertQuote(line, "", 0)
+            count++
+        }
+
+        showToast("Lines: $count")
+
+    } catch (e: IOException) {
+        e.printStackTrace()
+    }
+
+    private fun showToast(text: String) {
+        val duration = Toast.LENGTH_LONG
+
+        val toast = Toast.makeText(this, text, duration)
+        toast.show()
     }
 
     /**
@@ -133,9 +187,39 @@ class MainActivity : AppCompatActivity() {
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         return when (item.itemId) {
-            R.id.action_settings -> true
+            R.id.action_skip -> skipCurrentPhrase()
+            R.id.action_delete -> deleteCurrentPhrase()
+            R.id.action_mark_correct -> markAsCorrentCurrentPhrase()
             else -> super.onOptionsItemSelected(item)
         }
+    }
+
+    private fun markAsCorrentCurrentPhrase(): Boolean {
+
+        if (phrase!!.rating + 1 >= 5) {
+            quotesDAO?.deleteQuote(phrase!!.id)
+        } else {
+            quotesDAO?.updateQuoteRating(phrase!!.id, phrase!!.rating + 1)
+        }
+        changePhrase();
+
+        return true
+
+    }
+
+    private fun skipCurrentPhrase(): Boolean {
+
+        changePhrase()
+        return true
+
+    }
+
+    private fun deleteCurrentPhrase(): Boolean {
+
+        quotesDAO?.deleteQuote(phrase!!.id)
+        changePhrase()
+
+        return true
     }
 
 }
