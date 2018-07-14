@@ -4,8 +4,10 @@ import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.os.Bundle
 import android.speech.RecognizerIntent
+import android.speech.tts.TextToSpeech
 import android.support.design.widget.Snackbar
 import android.support.v7.app.AppCompatActivity
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
@@ -15,10 +17,10 @@ import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStreamReader
 import java.util.*
-import kotlin.collections.RandomAccess
 
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
+
 
     private val REQ_CODE_SPEECH_INPUT = 100
     private var phrase: Phrase? = null
@@ -26,10 +28,14 @@ class MainActivity : AppCompatActivity() {
     private var quotesDAO: QuotesDAO? = null
     private var phrases: List<Phrase>? = null
 
+    private var tts: TextToSpeech? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
+
+        tts = TextToSpeech(this, this)
 
         quotesDAO = QuotesDAO(this)
 
@@ -173,6 +179,29 @@ class MainActivity : AppCompatActivity() {
                     getString(R.string.speech_not_supported),
                     Toast.LENGTH_SHORT).show()
         }
+
+    }
+
+    override fun onInit(status: Int) {
+
+        if (status == TextToSpeech.SUCCESS) {
+
+            val result = tts?.setLanguage(Locale("en", "US"))
+
+            if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
+                Log.e("TTS", "This Language is not supported")
+            }
+
+        } else {
+            Log.e("TTS", "Initilization Failed!")
+        }
+
+    }
+
+    private fun speakOut() {
+
+        val text = phrase?.phrase
+        tts?.speak(text, TextToSpeech.QUEUE_FLUSH, null)
 
     }
 
