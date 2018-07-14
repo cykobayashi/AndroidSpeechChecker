@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.res.Configuration
 import android.os.Bundle
 import android.os.Environment
 import android.speech.RecognizerIntent
@@ -27,6 +28,8 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private var quotesDAO: QuotesDAO? = null
     private var phrases: List<Phrase>? = null
 
+    private var count = 0
+
     private var tts: TextToSpeech? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -45,13 +48,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
         changePhrase()
 
-        btnSpeak.setOnClickListener{
-            promptSpeechInput()
-        };
-
-        btnRead.setOnClickListener{
-            speakOut()
-        };
+        loadUI()
     }
 
     /**
@@ -83,7 +80,23 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
     }
 
+    private fun loadUI() {
+
+        btnSpeak.setOnClickListener{
+            promptSpeechInput()
+        };
+
+        btnRead.setOnClickListener{
+            speakOut()
+        };
+
+    }
+
     private fun changePhrase() {
+
+        count++
+        txtReadLabel.text = "Read (" + count + ")"
+
         var rnd = Random(System.nanoTime())
         phrase = phrases?.get(rnd.nextInt(phrases!!.size))
 
