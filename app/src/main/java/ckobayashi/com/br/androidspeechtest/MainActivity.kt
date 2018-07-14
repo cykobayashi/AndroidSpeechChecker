@@ -1,11 +1,13 @@
 package ckobayashi.com.br.androidspeechtest
 
+import android.Manifest
 import android.content.ActivityNotFoundException
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Bundle
+import android.os.Environment
 import android.speech.RecognizerIntent
 import android.speech.tts.TextToSpeech
-import android.support.design.widget.Snackbar
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.Menu
@@ -13,14 +15,11 @@ import android.view.MenuItem
 import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
-import java.io.BufferedReader
-import java.io.IOException
-import java.io.InputStreamReader
+import java.io.*
 import java.util.*
 
 
 class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
-
 
     private val REQ_CODE_SPEECH_INPUT = 100
     private var phrase: Phrase? = null
@@ -39,14 +38,19 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
         quotesDAO = QuotesDAO(this)
 
-        // importCSV()
+        //quotesDAO!!.deleteAll()
+        //importCSV()
 
         phrases = quotesDAO!!.getFavorites()
 
         changePhrase()
 
         btnSpeak.setOnClickListener{
-            promptSpeechInput();
+            promptSpeechInput()
+        };
+
+        btnRead.setOnClickListener{
+            speakOut()
         };
     }
 
@@ -84,6 +88,8 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         phrase = phrases?.get(rnd.nextInt(phrases!!.size))
 
         txtRead.text = phrase!!.phrase
+
+        speakOut()
     }
 
     private fun isCorrect(heard: String?, phrase: String): Boolean {
@@ -118,13 +124,16 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             alternatives.add(phrase.replace("'d", " would"))
         }
 
-
         if (phrase.contains("'s")) {
             alternatives.add(phrase.replace("'s", " is"))
         }
 
         if (phrase.contains("'ll")) {
             alternatives.add(phrase.replace("'ll", " will"))
+        }
+
+        if (phrase.contains("'re")) {
+            alternatives.add(phrase.replace("'re", " are"))
         }
 
         return alternatives
@@ -219,6 +228,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             R.id.action_skip -> skipCurrentPhrase()
             R.id.action_delete -> deleteCurrentPhrase()
             R.id.action_mark_correct -> markAsCorrentCurrentPhrase()
+            R.id.action_export -> writeFileOnExternalStorage()
             else -> super.onOptionsItemSelected(item)
         }
     }
@@ -249,6 +259,51 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         changePhrase()
 
         return true
+    }
+
+    private fun writeFileOnExternalStorage(): Boolean {
+
+        // Storage Permissions
+        val REQUEST_EXTERNAL_STORAGE = 1
+        val PERMISSIONS_STORAGE = arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+
+        val permission = this.checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+
+        if (permission != PackageManager.PERMISSION_GRANTED) {
+            // We don't have permission so prompt the user
+            this.requestPermissions(
+                    PERMISSIONS_STORAGE,
+                    REQUEST_EXTERNAL_STORAGE
+            )
+        }
+
+        try {
+            val extStorageDirectory = Environment.getExternalStorageDirectory().toString()
+            val gpxfile = File(extStorageDirectory, "phrases.csv")
+            val writer = FileWriter(gpxfile)
+
+            val sb = StringBuilder()
+
+            for (quote in phrases!!) {
+                sb.append(quote.phrase)
+                sb.append(";")
+                sb.append(quote.translation)
+                sb.append(";")
+                sb.append(quote.getRating())
+                sb.append("\r\n")
+            }
+
+            writer.append(sb.toString())
+            writer.flush()
+            writer.close()
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+
+        }
+
+        return true
+
     }
 
 }
